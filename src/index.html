@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rosco de Pasapalabra</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            overflow: hidden;
+        }
+
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 800px;
+            padding: 20px;
+        }
+
+        .rosco-container {
+            position: relative;
+            width: 400px;
+            height: 400px;
+            margin: 20px 0;
+        }
+
+        .letter-bubble {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: bold;
+            color: white;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            border: 3px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .letter-bubble.default {
+            background: linear-gradient(135deg, #b19cd9 0%, #8e44ad 100%);
+        }
+
+        .letter-bubble.current {
+            background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
+            transform: scale(1.2);
+            box-shadow: 0 6px 20px rgba(116, 185, 255, 0.4);
+        }
+
+        .letter-bubble.correct {
+            background: linear-gradient(135deg, #55efc4 0%, #00b894 100%);
+        }
+
+        .letter-bubble.incorrect {
+            background: linear-gradient(135deg, #fd79a8 0%, #e84393 100%);
+        }
+
+        .center-info {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .timer {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #74b9ff;
+        }
+
+        .percentage {
+            font-size: 36px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .stats {
+            font-size: 14px;
+            opacity: 0.8;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 30px;
+            margin: 30px 0;
+        }
+
+        .action-btn {
+            padding: 15px 30px;
+            font-size: 18px;
+            font-weight: bold;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: white;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .correct-btn {
+            background: linear-gradient(135deg, #55efc4 0%, #00b894 100%);
+        }
+
+        .correct-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(85, 239, 196, 0.4);
+        }
+
+        .incorrect-btn {
+            background: linear-gradient(135deg, #fd79a8 0%, #e84393 100%);
+        }
+
+        .incorrect-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(253, 121, 168, 0.4);
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .control-btn {
+            padding: 10px 20px;
+            font-size: 14px;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        .control-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .timer-input {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            width: 80px;
+            text-align: center;
+        }
+
+        .timer-input::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .instructions {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 14px;
+            opacity: 0.8;
+        }
+
+        .game-over {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .game-over-content {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            color: white;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .pulsing {
+            animation: pulse 1s infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="instructions">
+            Presiona O para CORRECTO o K para INCORRECTO
+        </div>
+        
+        <div class="rosco-container">
+            <div id="rosco"></div>
+            <div class="center-info">
+                <div class="timer" id="timer">00:00</div>
+                <div class="percentage" id="percentage">0%</div>
+                <div class="stats">
+                    <div>Correctas: <span id="correct-count">0</span></div>
+                    <div>Incorrectas: <span id="incorrect-count">0</span></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="action-buttons">
+            <button class="action-btn correct-btn" id="correct-btn">✓ CORRECTO (O)</button>
+            <button class="action-btn incorrect-btn" id="incorrect-btn">✗ INCORRECTO (K)</button>
+        </div>
+
+        <div class="controls">
+            <label>Tiempo (min):</label>
+            <input type="number" class="timer-input" id="timer-input" min="1" max="60" value="5" placeholder="5">
+            <button class="control-btn" id="start-btn">Iniciar</button>
+            <button class="control-btn" id="pause-btn">Pausar</button>
+            <button class="control-btn" id="reset-btn">Reiniciar</button>
+        </div>
+    </div>
+
+    <div class="game-over" id="game-over">
+        <div class="game-over-content">
+            <h2>¡Tiempo Finalizado!</h2>
+            <div id="final-stats"></div>
+            <button class="control-btn" onclick="closeGameOver()">Cerrar</button>
+        </div>
+    </div>
+
+    <script>
+        class RoscoGame {
+            constructor() {
+                this.letters = 'ABCDEFGHIJKLMNÑOPQRSTUVWXYZ'.split('');
+                this.currentIndex = 0;
+                this.correctCount = 0;
+                this.incorrectCount = 0;
+                this.letterStates = new Array(this.letters.length).fill('default');
+                this.timer = null;
+                this.timeLeft = 0;
+                this.isRunning = false;
+                this.isPaused = false;
+                
+                // Crear contexto de audio
+                this.audioContext = null;
+                this.tickSound = null;
+                
+                this.initializeAudio();
+                this.createRosco();
+                this.bindEvents();
+                this.updateDisplay();
+            }
+
+            async initializeAudio() {
+                try {
+                    this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                } catch (e) {
+                    console.log('Audio context not supported');
+                }
+            }
+
+            createTickSound() {
+                if (!this.audioContext) return;
+                
+                const oscillator = this.audioContext.createOscillator();
+                const gainNode = this.audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(this.audioContext.destination);
+                
+                oscillator.frequency.setValueAtTime(800, this.audioContext.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(400, this.audioContext.currentTime + 0.1);
+                
+                gainNode.gain.setValueAtTime(0.1, this.audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.1);
+                
+                oscillator.start(this.audioContext.currentTime);
+                oscillator.stop(this.audioContext.currentTime + 0.1);
+            }
+
+            createFanfareSound() {
+                if (!this.audioContext) return;
+                
+                const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+                notes.forEach((freq, index) => {
+                    const oscillator = this.audioContext.createOscillator();
+                    const gainNode = this.audioContext.createGain();
+                    
+                    oscillator.connect(gainNode);
+                    gainNode.connect(this.audioContext.destination);
+                    
+                    oscillator.frequency.setValueAtTime(freq, this.audioContext.currentTime);
+                    oscillator.type = 'triangle';
+                    
+                    const startTime = this.audioContext.currentTime + index * 0.2;
+                    gainNode.gain.setValueAtTime(0, startTime);
+                    gainNode.gain.linearRampToValueAtTime(0.2, startTime + 0.05);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + 0.5);
+                    
+                    oscillator.start(startTime);
+                    oscillator.stop(startTime + 0.5);
+                });
+            }
+
+            createRosco() {
+                const rosco = document.getElementById('rosco');
+                const radius = 175;
+                const centerX = 200;
+                const centerY = 200;
+
+                this.letters.forEach((letter, index) => {
+                    const angle = (index * 2 * Math.PI) / this.letters.length - Math.PI / 2;
+                    const x = centerX + radius * Math.cos(angle) - 25;
+                    const y = centerY + radius * Math.sin(angle) - 25;
+
+                    const bubble = document.createElement('div');
+                    bubble.className = `letter-bubble ${index === 0 ? 'current' : 'default'}`;
+                    bubble.textContent = letter;
+                    bubble.style.left = `${x}px`;
+                    bubble.style.top = `${y}px`;
+                    bubble.dataset.index = index;
+
+                    rosco.appendChild(bubble);
+                });
+            }
+
+            bindEvents() {
+                document.getElementById('correct-btn').addEventListener('click', () => this.markCorrect());
+                document.getElementById('incorrect-btn').addEventListener('click', () => this.markIncorrect());
+                document.getElementById('start-btn').addEventListener('click', () => this.startGame());
+                document.getElementById('pause-btn').addEventListener('click', () => this.pauseGame());
+                document.getElementById('reset-btn').addEventListener('click', () => this.resetGame());
+
+                document.addEventListener('keydown', (e) => {
+                    if (e.key.toLowerCase() === 'o') {
+                        this.markCorrect();
+                    } else if (e.key.toLowerCase() === 'k') {
+                        this.markIncorrect();
+                    }
+                });
+
+                // Inicializar audio context en primer click
+                document.addEventListener('click', () => {
+                    if (this.audioContext && this.audioContext.state === 'suspended') {
+                        this.audioContext.resume();
+                    }
+                }, { once: true });
+            }
+
+            markCorrect() {
+                if (!this.isRunning || this.isPaused) return;
+                
+                this.letterStates[this.currentIndex] = 'correct';
+                this.correctCount++;
+                this.nextLetter();
+            }
+
+            markIncorrect() {
+                if (!this.isRunning || this.isPaused) return;
+                
+                this.letterStates[this.currentIndex] = 'incorrect';
+                this.incorrectCount++;
+                this.nextLetter();
+            }
+
+            nextLetter() {
+                // Buscar la siguiente letra sin marcar
+                let nextIndex = (this.currentIndex + 1) % this.letters.length;
+                let attempts = 0;
+                
+                while (this.letterStates[nextIndex] !== 'default' && attempts < this.letters.length) {
+                    nextIndex = (nextIndex + 1) % this.letters.length;
+                    attempts++;
+                }
+                
+                if (attempts === this.letters.length) {
+                    // Todas las letras están marcadas
+                    this.endGame();
+                    return;
+                }
+                
+                this.currentIndex = nextIndex;
+                this.updateDisplay();
+            }
+
+            updateDisplay() {
+                // Actualizar burbujas
+                const bubbles = document.querySelectorAll('.letter-bubble');
+                bubbles.forEach((bubble, index) => {
+                    bubble.className = `letter-bubble ${this.letterStates[index]}`;
+                    if (index === this.currentIndex && this.letterStates[index] === 'default') {
+                        bubble.classList.add('current');
+                    }
+                });
+
+                // Actualizar estadísticas
+                const total = this.correctCount + this.incorrectCount;
+                const percentage = total > 0 ? Math.round((this.correctCount / total) * 100) : 0;
+                
+                document.getElementById('percentage').textContent = `${percentage}%`;
+                document.getElementById('correct-count').textContent = this.correctCount;
+                document.getElementById('incorrect-count').textContent = this.incorrectCount;
+            }
+
+            startGame() {
+                const minutes = parseInt(document.getElementById('timer-input').value) || 5;
+                this.timeLeft = minutes * 60;
+                this.isRunning = true;
+                this.isPaused = false;
+                
+                this.startTimer();
+                document.getElementById('start-btn').textContent = 'Jugando...';
+                document.getElementById('start-btn').disabled = true;
+            }
+
+            pauseGame() {
+                if (!this.isRunning) return;
+                
+                this.isPaused = !this.isPaused;
+                document.getElementById('pause-btn').textContent = this.isPaused ? 'Reanudar' : 'Pausar';
+                
+                if (this.isPaused) {
+                    clearInterval(this.timer);
+                } else {
+                    this.startTimer();
+                }
+            }
+
+            resetGame() {
+                clearInterval(this.timer);
+                this.currentIndex = 0;
+                this.correctCount = 0;
+                this.incorrectCount = 0;
+                this.letterStates.fill('default');
+                this.isRunning = false;
+                this.isPaused = false;
+                this.timeLeft = 0;
+                
+                document.getElementById('start-btn').textContent = 'Iniciar';
+                document.getElementById('start-btn').disabled = false;
+                document.getElementById('pause-btn').textContent = 'Pausar';
+                document.getElementById('timer').textContent = '00:00';
+                
+                this.updateDisplay();
+                document.getElementById('game-over').style.display = 'none';
+            }
+
+            startTimer() {
+                this.timer = setInterval(() => {
+                    if (this.isPaused) return;
+                    
+                    this.timeLeft--;
+                    this.updateTimer();
+                    
+                    // Sonido de tick cada segundo en los últimos 10 segundos
+                    if (this.timeLeft <= 10 && this.timeLeft > 0) {
+                        this.createTickSound();
+                    }
+                    
+                    if (this.timeLeft <= 0) {
+                        this.endGame();
+                    }
+                }, 1000);
+            }
+
+            updateTimer() {
+                const minutes = Math.floor(this.timeLeft / 60);
+                const seconds = this.timeLeft % 60;
+                const display = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                
+                document.getElementById('timer').textContent = display;
+                
+                // Hacer que el timer parpadee en los últimos 10 segundos
+                if (this.timeLeft <= 10) {
+                    document.getElementById('timer').classList.add('pulsing');
+                } else {
+                    document.getElementById('timer').classList.remove('pulsing');
+                }
+            }
+
+            endGame() {
+                clearInterval(this.timer);
+                this.isRunning = false;
+                this.createFanfareSound();
+                
+                const total = this.correctCount + this.incorrectCount;
+                const percentage = total > 0 ? Math.round((this.correctCount / total) * 100) : 0;
+                
+                document.getElementById('final-stats').innerHTML = `
+                    <h3>Resultados Finales</h3>
+                    <p>Porcentaje de aciertos: ${percentage}%</p>
+                    <p>Respuestas correctas: ${this.correctCount}</p>
+                    <p>Respuestas incorrectas: ${this.incorrectCount}</p>
+                    <p>Total de letras completadas: ${total} de ${this.letters.length}</p>
+                `;
+                
+                document.getElementById('game-over').style.display = 'flex';
+                document.getElementById('start-btn').textContent = 'Iniciar';
+                document.getElementById('start-btn').disabled = false;
+            }
+        }
+
+        function closeGameOver() {
+            document.getElementById('game-over').style.display = 'none';
+        }
+
+        // Inicializar el juego
+        const game = new RoscoGame();
+    </script>
+</body>
+</html>
