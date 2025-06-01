@@ -192,3 +192,5 @@ Problems? Suggestions? Just want to say hello?
 This project has been developed entirely using **Claude** (Anthropic's AI Assistant) as part of research into AI-assisted software development capabilities. The code, design, functionality, and this documentation were generated through conversational prompts, demonstrating the potential of human-AI collaboration in developing complete and interactive web applications.
 
 *The era of AI-assisted programming is already here* 🚀
+
+https://claude.ai/public/artifacts/bcdb8114-6e28-4a2e-943c-029c2a5127b0
