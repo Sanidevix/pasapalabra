@@ -73,6 +73,10 @@
         .letter-bubble.incorrect {
             background: linear-gradient(135deg, #fd79a8 0%, #e84393 100%);
         }
+		
+		.letter-bubble.pasa {
+            background: linear-gradient(135deg, #AEA2C3 0%, #9B90AD 100%);
+        }
 
         .center-info {
             position: absolute;
@@ -128,6 +132,15 @@
         }
 
         .correct-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(85, 239, 196, 0.4);
+        }
+		
+		.pasa-btn {
+            background: linear-gradient(135deg, #AEA2C3 0%, #9B90AD 100%);
+        }
+
+        .pasa-btn:hover {
             transform: translateY(-3px);
             box-shadow: 0 6px 20px rgba(85, 239, 196, 0.4);
         }
@@ -221,9 +234,9 @@
 </head>
 <body>
     <div class="game-container">
-        <div class="instructions">
+        <!--<div class="instructions">
             Presiona O para CORRECTO o K para INCORRECTO
-        </div>
+        </div>-->
         
         <div class="rosco-container">
             <div id="rosco"></div>
@@ -233,13 +246,15 @@
                 <div class="stats">
                     <div>Correctas: <span id="correct-count">0</span></div>
                     <div>Incorrectas: <span id="incorrect-count">0</span></div>
+					<div>Pasapalabra: <span id="pasa-count">0</span></div>
                 </div>
             </div>
         </div>
 
         <div class="action-buttons">
-            <button class="action-btn correct-btn" id="correct-btn">✓ CORRECTO (O)</button>
-            <button class="action-btn incorrect-btn" id="incorrect-btn">✗ INCORRECTO (K)</button>
+            <button class="action-btn correct-btn" id="correct-btn">✓ CORRECTO</button>
+			<button class="action-btn pasa-btn" id="pasa-btn">- PASAPALABRA</button>
+            <button class="action-btn incorrect-btn" id="incorrect-btn">✗ INCORRECTO</button>
         </div>
 
         <div class="controls">
@@ -265,6 +280,7 @@
                 this.letters = 'ABCDEFGHIJKLMNÑOPQRSTUVWXYZ'.split('');
                 this.currentIndex = 0;
                 this.correctCount = 0;
+				this.pasaCount = 0;
                 this.incorrectCount = 0;
                 this.letterStates = new Array(this.letters.length).fill('default');
                 this.timer = null;
@@ -357,6 +373,7 @@
 
             bindEvents() {
                 document.getElementById('correct-btn').addEventListener('click', () => this.markCorrect());
+				document.getElementById('pasa-btn').addEventListener('click', () => this.markPasa());
                 document.getElementById('incorrect-btn').addEventListener('click', () => this.markIncorrect());
                 document.getElementById('start-btn').addEventListener('click', () => this.startGame());
                 document.getElementById('pause-btn').addEventListener('click', () => this.pauseGame());
@@ -383,6 +400,14 @@
                 
                 this.letterStates[this.currentIndex] = 'correct';
                 this.correctCount++;
+                this.nextLetter();
+            }
+			
+			markPasa() {
+                if (!this.isRunning || this.isPaused) return;
+                
+                this.letterStates[this.currentIndex] = 'pasa';
+                this.pasaCount++;
                 this.nextLetter();
             }
 
@@ -431,6 +456,7 @@
                 document.getElementById('percentage').textContent = `${percentage}%`;
                 document.getElementById('correct-count').textContent = this.correctCount;
                 document.getElementById('incorrect-count').textContent = this.incorrectCount;
+				document.getElementById('pasa-count').textContent = this.pasaCount;
             }
 
             startGame() {
@@ -461,6 +487,7 @@
                 clearInterval(this.timer);
                 this.currentIndex = 0;
                 this.correctCount = 0;
+				this.pasaCount = 0;
                 this.incorrectCount = 0;
                 this.letterStates.fill('default');
                 this.isRunning = false;
@@ -514,13 +541,14 @@
                 this.isRunning = false;
                 this.createFanfareSound();
                 
-                const total = this.correctCount + this.incorrectCount;
+                const total = this.correctCount + this.incorrectCount +  this.pasaCount;
                 const percentage = total > 0 ? Math.round((this.correctCount / total) * 100) : 0;
                 
                 document.getElementById('final-stats').innerHTML = `
                     <h3>Resultados Finales</h3>
                     <p>Porcentaje de aciertos: ${percentage}%</p>
                     <p>Respuestas correctas: ${this.correctCount}</p>
+					<p>Respuestas pasadas: ${this.pasaCount}</p>
                     <p>Respuestas incorrectas: ${this.incorrectCount}</p>
                     <p>Total de letras completadas: ${total} de ${this.letters.length}</p>
                 `;
