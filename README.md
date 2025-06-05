@@ -17,6 +17,7 @@ This is a complete web game of the famous **Pasapalabra Rosco**, where you'll ha
 - 🫧 Organic bubbles for each letter with incredible visual effects
 - 🔵 Current letter highlighted in bright blue
 - ✅ Green for correct answers
+- Gray for non answered questions
 - ❌ Red for the ones... we'd rather not talk about
 
 ### 🎮 **Addictive Gameplay**
@@ -84,6 +85,7 @@ npx serve .
 | Action | Keyboard | Mouse |
 |--------|----------|-------|
 | **Correct Answer** | `O` | 🟢 Green Button |
+| **Pass Answer** | None |  Gray Button |
 | **Incorrect Answer** | `K` | 🔴 Red Button |
 | **Start Game** | - | 🎮 Start Button |
 | **Pause/Resume** | - | ⏸️ Pause Button |
